@@ -163,18 +163,31 @@ public class RNGoogleSigninModule extends ReactContextBaseJavaModule {
     private void handleSignInTaskResult(Task<GoogleSignInAccount> result) {
         try {
             GoogleSignInAccount account = result.getResult(ApiException.class);
-            if (account == null) {
-                promiseWrapper.reject(MODULE_NAME, "GoogleSignInAccount instance was null");
-            } else {
-                WritableMap userParams = getUserProperties(account);
-                promiseWrapper.resolve(userParams);
-            }
+            WritableMap params = getUserProperties(account);
+            //new AccessTokenRetrievalTask(this).execute(params);
+            new AccessTokenRetrievalTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,params);
+
         } catch (ApiException e) {
             int code = e.getStatusCode();
-            String errorDescription = GoogleSignInStatusCodes.getStatusCodeString(code);
-            promiseWrapper.reject(String.valueOf(code), errorDescription);
+            promiseWrapper.reject(String.valueOf(code), GoogleSignInStatusCodes.getStatusCodeString(code));
         }
     }
+
+    // private void handleSignInTaskResult(Task<GoogleSignInAccount> result) {
+    //     try {
+    //         GoogleSignInAccount account = result.getResult(ApiException.class);
+    //         if (account == null) {
+    //             promiseWrapper.reject(MODULE_NAME, "GoogleSignInAccount instance was null");
+    //         } else {
+    //             WritableMap userParams = getUserProperties(account);
+    //             promiseWrapper.resolve(userParams);
+    //         }
+    //     } catch (ApiException e) {
+    //         int code = e.getStatusCode();
+    //         String errorDescription = GoogleSignInStatusCodes.getStatusCodeString(code);
+    //         promiseWrapper.reject(String.valueOf(code), errorDescription);
+    //     }
+    // }
 
     @ReactMethod
     public void signIn(Promise promise) {
